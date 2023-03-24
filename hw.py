@@ -1,6 +1,7 @@
 import json
 
 import requests
+import lxml
 from fake_headers import Headers
 from bs4 import BeautifulSoup
 from pprint import pprint
@@ -18,8 +19,17 @@ bs = BeautifulSoup(SOURCE, features='lxml')
 
 articles_list = bs.find_all(class_="vacancy-serp-item__layout")
 
-vacancy_list = []
+# pprint(articles_list)
 
+
+description_list = []
+for item in articles_list:
+    description_vacancy = item.find('a', {'data-qa': 'serp-item__title'}).text
+    if 'Django' or 'Flask' in description_vacancy:
+        description_list.append(description_vacancy)
+pprint(description_list)
+
+vacancy_list = []
 for article in articles_list:
     link = article.find('a')['href']
     salary = article.find('span', class_="bloko-header-section-3")
