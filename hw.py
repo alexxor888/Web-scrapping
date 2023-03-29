@@ -6,8 +6,8 @@ from fake_headers import Headers
 from bs4 import BeautifulSoup
 from pprint import pprint
 
-HOST = 'https://spb.hh.ru/search/vacancy?text=python&area=1&area=2'
-KEYWORDS = ['Django', 'Flask']
+HOST = 'https://spb.hh.ru/search/vacancy?text=python,django,flask&area=1&area=2'
+
 
 def get_headers():
     return Headers(browser='firefox', os='win').generate()
@@ -19,33 +19,34 @@ bs = BeautifulSoup(SOURCE, features='lxml')
 
 articles_list = bs.find_all(class_="vacancy-serp-item__layout")
 
-# pprint(articles_list)
-
-
-description_list = []
-for item in articles_list:
-    description_vacancy = item.find('a', {'data-qa': 'serp-item__title'}).text
-    if 'Django' or 'Flask' in description_vacancy:
-        description_list.append(description_vacancy)
-pprint(description_list)
 
 vacancy_list = []
 for article in articles_list:
     link = article.find('a')['href']
-    salary = article.find('span', class_="bloko-header-section-3")
+    salary = str(article.find('span', class_="bloko-header-section-3"))
+    salary = salary.replace('<span class="bloko-header-section-3" data-qa="vacancy-serp__vacancy-compensation">','')\
+        .replace('\u202f000','').replace('<!-- -->','тыс. ').replace('.</span>','.')
     company = article.find('a', class_='bloko-link bloko-link_kind-tertiary').text
+    company = company.replace('\xa0', ' ')
     city = article.find('div',{'data-qa':'vacancy-serp__vacancy-address'}).text
 
     vacancy_list.append({
 
-        'Зарплата': salary,
         'Компания': company,
         'Город': city,
+        'Зарплата': salary,
         'Ссылка': link
 
     })
 
-pprint(vacancy_list)
+# pprint(vacancy_list)
 
-with open('vacancy.json', 'w') as f:
-    json.dump(vacancy_list, f)
+with open('vacancy.json', 'w') as file:
+    json.dump(vacancy_list, file, ensure_ascii=False)
+
+
+# with open('vacancy.json') as f:
+#     data = f.read()
+#     data_json = json.loads(data)
+#
+# pprint(data_json)
